@@ -26,10 +26,10 @@ The Refundable script takes the following form:
 
 ```
 OP_IF
-    [HASHOP] <digest> OP_EQUALVERIFY OP_DUP OP_HASH160 <borrower pubkey hash> OP_EQUALVERIFY OP_CHECKSIG
+    [HASHOP] <secret b2> OP_EQUALVERIFY OP_DUP OP_HASH160 <borrower pubkey hash> OP_EQUALVERIFY OP_CHECKSIG
 OP_ELSE
     OP_IF
-        <loan expiration num> [TIMEOUTOP] OP_DROP OP_2 <borrower pubkey> <lender pubkey> OP_2 OP_CHECKMULTISIG
+        <loan expiration num> [TIMEOUTOP] OP_DROP [HASHOP] <secret a2> OP_EQUALVERIFY [HASHOP] <secret b3> OP_EQUALVERIFY OP_2 <borrower pubkey> <lender pubkey> OP_2 OP_CHECKMULTISIG
     OP_ELSE
         <liquidation expiration num> [TIMEOUTOP] OP_DROP OP_DUP OP_HASH160 <borrower pubkey hash> OP_EQUALVERIFY OP_CHECKSIG
     OP_ENDIF
@@ -40,13 +40,13 @@ The Seizable script takes the following form
 
 ```
 OP_IF
-    [HASHOP] <digest> OP_EQUALVERIFY OP_DUP OP_HASH160 <borrower pubkey hash> OP_EQUALVERIFY OP_CHECKSIG
+    [HASHOP] <secret b2> OP_EQUALVERIFY OP_DUP OP_HASH160 <borrower pubkey hash> OP_EQUALVERIFY OP_CHECKSIG
 OP_ELSE
     OP_IF
-        <loan expiration num> [TIMEOUTOP] OP_DROP OP_2 <borrower pubkey> <lender pubkey> OP_2 OP_CHECKMULTISIG
+        <loan expiration num> [TIMEOUTOP] OP_DROP [HASHOP] <secret a2> OP_EQUALVERIFY [HASHOP] <secret b3> OP_EQUALVERIFY OP_2 <borrower pubkey> <lender pubkey> OP_2 OP_CHECKMULTISIG
     OP_ELSE
         OP_IF
-            <liquidation expiration num> [TIMEOUTOP] OP_DROP [HASHOP] <digest> OP_DUP OP_HASH160 <lender pubkey hash> OP_EQUALVERIFY OP_CHECKSIG
+            <bidding expiration num> [TIMEOUTOP] OP_DROP [HASHOP] <secret a1> OP_EQUALVERIFY OP_DUP OP_HASH160 <lender pubkey hash> OP_EQUALVERIFY OP_CHECKSIG
         OP_ELSE
             <seizure expiration num> [TIMEOUTOP] OP_DROP OP_DUP OP_HASH160 <borrower pubkey hash> OP_EQUALVERIFY OP_CHECKSIG
         OP_ENDIF
@@ -60,7 +60,7 @@ OP_ENDIF
 
 ## Interaction ##
 
-- Alice (the "borrower") and Bob (the "lender") exchange public keys as well as two secrets A1, A2 for Alice and B1, B2 for Bob, and mutually agree upon a timeout threshold for the loan period, liquidation period, and seizure period. Both parties exchange then construct the script and P2SH address for the Refundable Collateral Contract and Seizable Collateral Contract. Both parties also construct the script for the blockchain in which the loan will be issued.
+- Alice (the "borrower") and Bob (the "lender") exchange public keys as well as two secrets A1, A2 for Alice and B1, B2, B3 for Bob, and mutually agree upon a timeout threshold for the loan period, liquidation period, and seizure period. Both parties exchange then construct the script and P2SH address for the Refundable Collateral Contract and Seizable Collateral Contract. Both parties also construct the script for the blockchain in which the loan will be issued.
 
 - Bob sends funds to the loan script on the other blockchain
 
@@ -80,9 +80,58 @@ OP_ENDIF
 
 Bob is interested in a lower loan timeout to reduce the amount of time that his funds are kept in the contract in the event that Alice defaults.
 
+# Compatibility #
+
+BIP ??? is compatible with [ERC ???](https://github.com/atomicloans/eip) for [atomic loans](https://arxiv.org/pdf/1901.05117.pdf) with Ethereum and other HTLC and smart contract compatible chains.
+
 # Motivation #
 
 In many different protocols, the revealing of secrets is used a settlement mechanism. Hashed Time-Locked Atomic Loan Collateral Contract transactions are a safe way of exchanging secrets to advance the state of a debt agreement, due to the ability to recover a percentage of collateral funds from an uncooperative counterparty, and ensure principal + interest + liquidation fee is paid with a cooperative party. 
+
+# Definitions #
+
+`borrower`: entity that receives loan amount from `lender` once the `borrower` locks their collateral
+
+`lender`: entity that contributes funds to the `borrower` for the debt agreement
+
+`secret`: random number chosen by the `borrower` or `lender`, revealed to allow the parties to change the state of the debt agreement
+
+`secretHash`: hash of the `secret`, used in the construction of Hashed Time-Locked Atomic Loan Contract
+
+`expiration`: timestamp the determines which part of the debt agreement the two parties are in
+
+`SecretA1`: `borrower` secret used for proving that the `borrower` has withdrawn the loan
+
+`SecretA2`: `borrower` secret used for allowing `bidder` to spend the collateral funds
+
+`SecretB1`: `lender` secret used for accepting `borrower` collateral locking, enabling them to withdraw the loan amount
+
+`SecretB2`: `lender` secret used for refunding themselves in the event they aren't satisfied with locking of the collateral or for accepting repayment
+
+`SecretB3`: `lender` secret used for accepting bid process
+
+`SecretC`: `bidder` secret used for accepting the signatures of the `borrower` and `lender` to liquidate the collateral
+
+`loan expiration num`: timestamp that determines when the `borrower` must repay the loan by
+
+`bidding expiration num`: timestamp that determines the amount of time allocated to bidding before seizure period occurs
+
+`seizure expiration num`: timestamp that determines the amount of time allocated to seizing the collateral before borrower can refund
+
+**Withdraw Period:**
+During this time, the `lender` deploys the Hashed Time-Locked Atomic Loan Contract. Following this, the borrower locks their collateral on the collateral blockchain in a Hashed Time-Locked Atomic Loan Collateral Contract https://github.com/mattBlackDesign/BIP. The `lender` then either reveals `secretB1` to signify that they are satisfied with the collateral, and the borrower can withdraw the loan using `secretA1`. Otherwise, the lender refunds their loan amount, by revealing `secretB2`, allowing the borrower to refund their Collateral. 
+
+**Loan Period:**
+Once the `borrower` has withdrawn the loan amount, the loan begins. Once the loan term is finished, the borrower is expected to repay the loan. If they do, the `lender` can then accept the repayment by revealing `secretB2` enabling the borrower to refund their Collateral. In the case that the `borrower` defaults on the `lender` does not accept the loan repayment, the parties can opt for liquidation of the collateral in the Bidding Period.
+
+**Bidding Period:**
+In the case of a default or the `lender` not accepting the `borrower` repayment, the `lender` and `borrower` can opt for liquidation of the collateral through the process of third parties bidding on the collateral. This is done by either the `lender` or `borrower` initiating bidding, which will allow third parties to bid on the collateral. Once the bidding timeout occurs, the `lender` and `borrower` must each provide a signature to allow the collateral to be spent by the `bidder`.
+
+**Seizure Period:**
+In the case that bidding is unsuccessful, the `lender` can seize a percentage of the collateral. The amount is dependent on the amount of collateral locked in the seizable script and refundable script as described in the BIP (https://github.com/mattBlackDesign/BIP). During this period the `borrower` can also spend the funds locked in the refundable script.
+
+**Refund Period:**
+In the case that the `lender` does not seize the collateral locked in the seizable script, then the borrower can refund the funds locked in the refundable script.
 
 # Implementation #
 
