@@ -119,7 +119,7 @@ In many different protocols, the revealing of secrets is used a settlement mecha
 `seizure expiration num`: timestamp that determines the amount of time allocated to seizing the collateral before borrower can refund
 
 **Withdraw Period:**
-During this time, the `lender` deploys the Hashed Time-Locked Atomic Loan Contract. Following this, the borrower locks their collateral on the collateral blockchain in a Hashed Time-Locked Atomic Loan Collateral Contract https://github.com/mattBlackDesign/BIP. The `lender` then either reveals `secretB1` to signify that they are satisfied with the collateral, and the borrower can withdraw the loan using `secretA1`. Otherwise, the lender refunds their loan amount, by revealing `secretB2`, allowing the borrower to refund their Collateral. 
+During this time, the `lender` deploys the Hashed Time-Locked Atomic Loan Contract which is specified in the EIP https://github.com/atomicloans/EIP. Following this, the borrower locks their collateral on the collateral blockchain in a Hashed Time-Locked Atomic Loan Collateral Contract. The `lender` then either reveals `secretB1` to signify that they are satisfied with the collateral, and the borrower can withdraw the loan using `secretA1`. Otherwise, the lender refunds their loan amount, by revealing `secretB2`, allowing the borrower to refund their Collateral. 
 
 **Loan Period:**
 Once the `borrower` has withdrawn the loan amount, the loan begins. Once the loan term is finished, the borrower is expected to repay the loan. If they do, the `lender` can then accept the repayment by revealing `secretB2` enabling the borrower to refund their Collateral. In the case that the `borrower` defaults on the `lender` does not accept the loan repayment, the parties can opt for liquidation of the collateral in the Bidding Period.
@@ -128,7 +128,7 @@ Once the `borrower` has withdrawn the loan amount, the loan begins. Once the loa
 In the case of a default or the `lender` not accepting the `borrower` repayment, the `lender` and `borrower` can opt for liquidation of the collateral through the process of third parties bidding on the collateral. This is done by either the `lender` or `borrower` initiating bidding, which will allow third parties to bid on the collateral. Once the bidding timeout occurs, the `lender` and `borrower` must each provide a signature to allow the collateral to be spent by the `bidder`.
 
 **Seizure Period:**
-In the case that bidding is unsuccessful, the `lender` can seize a percentage of the collateral. The amount is dependent on the amount of collateral locked in the seizable script and refundable script as described in the BIP (https://github.com/mattBlackDesign/BIP). During this period the `borrower` can also spend the funds locked in the refundable script.
+In the case that bidding is unsuccessful, the `lender` can seize a percentage of the collateral. The amount is dependent on the amount of collateral locked in the seizable script and refundable script as described in this BIP. During this period the `borrower` can also spend the funds locked in the refundable script.
 
 **Refund Period:**
 In the case that the `lender` does not seize the collateral locked in the seizable script, then the borrower can refund the funds locked in the refundable script.
