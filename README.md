@@ -2,7 +2,9 @@
   BIP: ???
   Layer: Applications
   Title: Hashed Time-Locked Collateral Contract transactions
-  Author: Matthew Black <matthew@atomicloans.io>, Tony Cai <tony@atomicloans.io>, Atomic Loans team <info@atomicloans.io>
+  Author: Matthew Black <matthew@atomicloans.io>
+          Tony Cai <tony@atomicloans.io>
+          Atomic Loans team <info@atomicloans.io>
   Comments-Summary: No comments yet.
   Comments-URI: TBD
   Status: Proposal
