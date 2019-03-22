@@ -1,4 +1,4 @@
-<pre>
+---
   BIP: ???
   Layer: Applications
   Title: Hashed Time-Locked Collateral Contract transactions
@@ -10,7 +10,7 @@
   Status: Proposal
   Type: Informational
   Created: 2019-03-19
-</pre>
+---
 
 # Abstract #
 
