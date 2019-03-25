@@ -14,7 +14,7 @@
 
 # Abstract #
 
-This BIP describes a script for generalized debt agreement contract based on Hashed Time-Lock Contract (BIP 199) transactions according to the Atomic Loans specification (https://arxiv.org/pdf/1901.05117.pdf).
+This BIP describes a script for generalized debt agreement contract based on Hashed Time-Lock Contract (BIP 199) transactions according to the Atomic Loans specification (https://arxiv.org/pdf/1901.05117.pdf). For more details visit https://atomicloans.io.
 
 # Summary #
 
